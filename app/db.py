@@ -3,7 +3,7 @@ from typing import Union
 
 import aiosqlite
 
-DB_FILE = os.getenv('SQLITE_DB', '/tmp/db.sqlite')
+DB_FILE = os.getenv("SQLITE_DB", "/tmp/db.sqlite")
 
 
 async def init_db():
@@ -41,7 +41,7 @@ async def get_url(slug: str) -> Union[str, None]:
 
 async def get_views(slug: str) -> Union[int, None]:
     row = await _get_row(slug)
-    return row['views'] if row else None
+    return row["views"] if row else None
 
 
 async def inc_views(slug: str):
