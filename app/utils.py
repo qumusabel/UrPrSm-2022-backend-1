@@ -18,5 +18,5 @@ def is_valid_url(url: str):
 
 
 def generate_slug(len: int = 11) -> str:
-    return ''.join(random.choices(_slug_alph, k=len))    
+    return ''.join(random.choices(_slug_alph, k=len))
 

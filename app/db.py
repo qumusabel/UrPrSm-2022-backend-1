@@ -3,47 +3,52 @@ from typing import Union
 
 import aiosqlite
 
-
-_db_file = os.getenv('SQLITE_DB', '/tmp/db.sqlite')
-
-_schema = "CREATE TABLE IF NOT EXISTS urls (slug TEXT, url TEXT, hits INTEGER)"
-_get_url_sql  = "SELECT * FROM urls WHERE slug = (?)"
-_add_url_sql  = "INSERT INTO urls VALUES (?, ?, 0)"
-_inc_hits_sql = "UPDATE urls SET hits = hits + 1 WHERE slug = (?)"
+DB_FILE = os.getenv('SQLITE_DB', '/tmp/db.sqlite')
 
 
 async def init_db():
-    async with aiosqlite.connect(_db_file) as db:
-        await db.execute(_schema)
+    async with aiosqlite.connect(DB_FILE) as db:
+        await db.execute(
+            "CREATE TABLE IF NOT EXISTS urls (slug TEXT, url TEXT, views INTEGER)"
+        )
         await db.commit()
 
 
 async def add_url(slug: str, url: str):
-    async with aiosqlite.connect(_db_file) as db:
-        await db.execute(_add_url_sql, (slug, url))
+    async with aiosqlite.connect(DB_FILE) as db:
+        await db.execute(
+            "INSERT INTO urls VALUES (?, ?, 0)",
+            (slug, url)
+        )
         await db.commit()
 
 
 async def _get_row(slug: str) -> Union[aiosqlite.Row, None]:
-    async with aiosqlite.connect(_db_file) as db:
+    async with aiosqlite.connect(DB_FILE) as db:
         db.row_factory = aiosqlite.Row
 
-        cursor = await db.execute(_get_url_sql, (slug,))
+        cursor = await db.execute(
+            "SELECT * FROM urls WHERE slug = (?)",
+            (slug, )
+        )
         return await cursor.fetchone()
 
 
 async def get_url(slug: str) -> Union[str, None]:
     row = await _get_row(slug)
-    return row['url'] if row else None
+    return row["url"] if row else None
 
 
-async def get_hits(slug: str) -> Union[int, None]:
+async def get_views(slug: str) -> Union[int, None]:
     row = await _get_row(slug)
-    return row['hits'] if row else None
+    return row['views'] if row else None
 
 
-async def inc_hits(slug: str):
-    async with aiosqlite.connect(_db_file) as db:
-        await db.execute(_inc_hits_sql, (slug, ))
+async def inc_views(slug: str):
+    async with aiosqlite.connect(DB_FILE) as db:
+        await db.execute(
+            "UPDATE urls SET views = views + 1 WHERE slug = (?)",
+            (slug, )
+        )
         await db.commit()
 
